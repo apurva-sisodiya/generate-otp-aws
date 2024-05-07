@@ -1,6 +1,6 @@
 'use strict';
 
-const { DynamoDBClient, PutItemCommand } = require("@aws-sdk/client-dynamodb");
+const { DynamoDBClient, PutItemCommand, GetItemCommand } = require("@aws-sdk/client-dynamodb");
 const { v4: uuidv4 } = require('uuid');
 
 const dynamoDbClient = new DynamoDBClient({ region: "us-east-1" });
@@ -97,6 +97,47 @@ module.exports.otpNotification = async (event) => {
 };
 }
 
+
+module.exports.validateOtp = async (event) => {
+  
+  const {parcelId, otp} = JSON.parse(event.body);
+
+  console.log("parcelId", parcelId);
+
+  const getItemCommand = new GetItemCommand({
+    TableName: "ParcelOtpTable",
+    Key: {
+      "parcelId": { S: parcelId },
+    },
+});
+
+
+try {
+  // Store the OTP in DynamoDB
+  const response = await dynamoDbClient.send(getItemCommand);
+  console.log("response", response);
+
+  const otpFromDb = response.Item.otp.N;
+
+  if(Number(otpFromDb) === Number(otp) ){
+    return {
+      statusCode: 200,
+      body: JSON.stringify({ message: "Valid OTP" })
+  };  
+  }else{
+    return {
+      statusCode: 400,
+      body: JSON.stringify({ message: "Invalid OTP" })
+  };
+  }
+} catch (error) {
+  console.error("Error getting OTP in DynamoDB:", error);
+  return {
+      statusCode: 500,
+      body: JSON.stringify({ message: "Could not retive requested item" })
+  };
+}
+}
 // return {
 //   statusCode: 200,
 //   body: JSON.stringify(
