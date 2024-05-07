@@ -31,6 +31,10 @@ provider:
           Action:
             - dynamodb:*
           Resource: "*"
+        - Effect: Allow
+          Action:
+            - 'sns:*'
+          Resource: !Ref OtpNotificationTopic
 
 functions:
   create-otp:
@@ -39,6 +43,16 @@ functions:
       - http:
           path: /generateOtp
           method: post
+
+  otp-notification:
+    handler: handler.otpNotification
+    events:
+      - stream:
+          type: dynamodb
+          arn:
+            Fn::GetAtt:
+              - ParcelOtpTable
+              - StreamArn
 	
 resources:
   Resources:
@@ -55,6 +69,30 @@ resources:
         ProvisionedThroughput:
           ReadCapacityUnits: 5
           WriteCapacityUnits: 5
+        StreamSpecification:
+          StreamViewType: NEW_IMAGE
+
+    OtpNotificationTopic:
+      Type: 'AWS::SNS::Topic'
+      Properties:
+        TopicName: 'OtpNotificationTopic'
+    OtpSubscription:
+      Type: AWS::SNS::Subscription
+      Properties:
+        TopicArn: !Ref OtpNotificationTopic
+        Endpoint: 'neeraj.gsti@gmail.com'
+        Protocol: email
+
+# functions:
+  # otp-notification:
+  #   handler: handler.otpNotification
+  #   events:
+  #     - stream:
+  #         type: dynamodb
+  #         arn:
+  #           Fn::GetAtt:
+  #             - ParcelOtpTable
+  #             - StreamArn
 
 # iamRoleStatements:
 #   - Effect: Allow
