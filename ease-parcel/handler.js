@@ -47,12 +47,20 @@ module.exports.createOtp = async (event) => {
 
     return {
         statusCode: 200,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Headers': 'Content-Type'
+      },
         body: JSON.stringify({ message: "OTP generated and stored successfully" })
     };
 } catch (error) {
     console.error("Error storing OTP in DynamoDB:", error);
     return {
         statusCode: 500,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Headers': 'Content-Type'
+      },
         body: JSON.stringify({ message: "Error storing OTP in DynamoDB" })
     };
 }
@@ -71,7 +79,13 @@ module.exports.otpNotification = async (event) => {
 
       const params = {
         Message: msg,
-        TopicArn: 'arn:aws:sns:us-east-1:975050068766:OtpNotificationTopic'
+        TopicArn: 'arn:aws:sns:us-east-1:975050068766:OtpNotificationTopic',
+        MessageAttributes: {
+          email: {
+            DataType: 'String',
+            StringValue: newImage.emailId.S
+          }
+        }
       }
 
       try{
@@ -122,11 +136,19 @@ try {
   if(Number(otpFromDb) === Number(otp) ){
     return {
       statusCode: 200,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': 'Content-Type'
+    },
       body: JSON.stringify({ message: "Valid OTP" })
   };  
   }else{
     return {
       statusCode: 400,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': 'Content-Type'
+    },
       body: JSON.stringify({ message: "Invalid OTP" })
   };
   }
@@ -134,6 +156,10 @@ try {
   console.error("Error getting OTP in DynamoDB:", error);
   return {
       statusCode: 500,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': 'Content-Type'
+    },
       body: JSON.stringify({ message: "Could not retive requested item" })
   };
 }

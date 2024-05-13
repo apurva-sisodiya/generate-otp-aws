@@ -43,6 +43,11 @@ functions:
       - http:
           path: /generateOtp
           method: post
+          cors:
+            origin: '*'
+            headers:
+              - Content-Type
+            allowCredentials: false
 
   validate-otp:
     handler: handler.validateOtp
@@ -50,6 +55,11 @@ functions:
       - http:
           path: /validateOtp
           method: post
+          cors:
+            origin: '*'
+            headers:
+              - Content-Type
+            allowCredentials: false
 
   otp-notification:
     handler: handler.otpNotification
